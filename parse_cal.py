@@ -84,7 +84,6 @@ def main():
 #            train['trainNumber'][i] = (h,m)
 
 
-
     #print '\n\n', trainList[18]    
     #print '\n\n', trainList[42]    
     #print 'trainList =', trainList, ';'
