@@ -2,6 +2,7 @@
 
 import sys
 import datetime
+import json
 
 def main():
     matrix = []
@@ -31,7 +32,7 @@ def main():
     #print 'stops', stops
     #print 'trains', trains
     tl=[]
-    for trainRow in trains[0:2]:
+    for trainRow in trains:
         r = {}
         r['number'] = trainRow.pop(0)
         r['stops'] = []
@@ -48,16 +49,17 @@ def main():
 
     for train in tl:
         for s in train['stops']:
-            t = s['time'].split(':')
+            t = s['time'].strip('*').split(':')
             h = int(t[0])
             m = int(t[1])
             if train['number'] in ['196', '150', '154', '158', '260', '362',
                                    '264', '266', '368', '270', '372', '274',
                                    '276', '378', '280', '382', '284', '386',
-                                   '288', '190', '192', '194'] or train['number'] == '146' and h == 1:
-                h += 12
+                                   '288', '190', '192', '194'] or (train['number'] == '198' and h == 12) or (train['number'] == '146' and h == 1):
+                h = (h + 12) % 24
             s['time'] = datetime.time(h, m).isoformat()
-    print tl
+    print "trains = %s;" % json.dumps(tl, indent=4)
+    #print "stops = %s;" % json.dumps(stops,)
 
 #    for train in trainList:
 #        for (k, v) in enumerate(train['stops']):
