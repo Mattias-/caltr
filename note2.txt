@@ -1,0 +1,40 @@
+"static"-ish:
+    calculate distance between stops
+    for each train
+        calc speed between stops
+----
+every minute:
+get new active trains and run them
+
+
+run active trains as threads
+
+activeTrain
+    lastStop
+    nextStop
+    timeToNext
+    pos
+    timeBetweenStops
+    tic()
+        fractionTravelled = 1 - (timeToNext / timeBetweenStops) 
+        timeToNext = nextStopTime-currentTime
+        pos = getPos(lastStop, nextStop, fractionTravelled)
+        if fractionTravelled >= 1
+            atStop()
+    atStop()
+        update last
+        if lastStop == endStop
+            remove from active trains
+            delete self
+        update next,
+        update timeToNext
+        sleep(stopStayTime)
+        timeBetweenStops = nextStopTime - currentTime
+        timeToNext = timeBetweenStops
+
+
+
+isActive(train)
+    get time first stop
+    get time last stop
+    if current time <

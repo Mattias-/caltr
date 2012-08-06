@@ -1,4 +1,4 @@
-#! /usr/local/bin/python
+#! /usr/bin/env python
 
 import sys
 import datetime
@@ -57,9 +57,11 @@ def main():
                                    '276', '378', '280', '382', '284', '386',
                                    '288', '190', '192', '194'] or (train['number'] == '198' and h == 12) or (train['number'] == '146' and h == 1):
                 h = (h + 12) % 24
-            s['time'] = datetime.time(h, m).isoformat()
-    print "trains = %s;" % json.dumps(tl, indent=4)
-    #print "stops = %s;" % json.dumps(stops,)
+            d = datetime.date.today()
+            t = datetime.time(h, m)
+            s['time'] = datetime.datetime.combine(d, t).isoformat() + '-0700'
+    print "trains = %s;" % json.dumps(tl, indent=2)
+    print "stops = %s;" % json.dumps(stops,indent=2)
 
 #    for train in trainList:
 #        for (k, v) in enumerate(train['stops']):
