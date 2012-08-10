@@ -38,7 +38,7 @@ def main():
         r['stops'] = []
         for i, time in enumerate(trainRow):
             if time != '-':
-                r['stops'].append(dict(time = time, stop = stops[i]))
+                r['stops'].append(dict(time = time, name = stops[i]))
         tl.append(r)
     #print tl
 

@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>TITLE</title>
+    <title>Caltr</title>
     <style type="text/css">
       body {
         font: 8pt monospace;
@@ -19,46 +19,16 @@
     <script src="date.js"></script>
     <script src="moment.js"></script>
     <script src="trainList2.js"></script>
+    <script src="caltr.js"></script>
     <script>
       $(document).ready(function(){
-      
-        //console.log('trais', trains);
-        //console.log('stops', stops);
-
-        $.each(trains, function(i, train){
-          var first = new Date(train.stops[0].time);
-          var last = new Date(train.stops[train.stops.length-1].time);
-          var now = Date.parse('2012-08-05 18:00');
-          //now = new Date();
-          //console.log(first,last,now);
-          if(now.between(first, last)){
-            console.log(train)
-          }
-        });
-
-        var da = trains[0].stops[0].time;
-        var db = Date.parse(da);
-        var dc = new Date();
-        dc.setTime(db);
-//      var table = $('<table>');
-//      
-//      var header = $('<tr>');
-//      header.append('<td>Trains</td>');
-//      $.each(trainList, function(index, value){
-//        header.append('<td>'+value.trainNumber+'</td>');
-//      });
-//      table.append(header);
-//
-//      $.each(stopList, function(i, v){
-//        var row = $('<tr>');
-//        row.append('<td>'+ v +'</td>')
-//        $.each(trainList, function(index, value){
-//          row.append('<td>'+value.stopTimes[i]+'</td>');
-//        });
-//        table.append(row);       
-//      });
-//
-//      table.appendTo('body');
+        Utils.startDate = moment(Date.parse('2012-08-09 17:00'));
+        createDateObjects(trains);
+        var now = Utils.fakeNow();//TODO
+        activeTrains = getActiveTrains(trains, now);
+        console.log(activeTrains);
+        tr0 = new ActiveTrain(activeTrains[2]);
+        console.log(tr0);
       });
     </script>
   </head>
