@@ -58,6 +58,8 @@ def main():
                                    '288', '190', '192', '194'] or (train['number'] == '198' and h == 12) or (train['number'] == '146' and h == 1):
                 h = (h + 12) % 24
             d = datetime.date.today()
+            if (train['number'] == '196' and h == 0) or train['number'] == '198':
+                d += datetime.timedelta(1);
             t = datetime.time(h, m)
             s['time'] = datetime.datetime.combine(d, t).isoformat() + '-0700'
     print "trains = %s;" % json.dumps(tl, indent=2)
