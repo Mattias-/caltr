@@ -1,4 +1,6 @@
-function createDateObjects(trains){
+var caltr = caltr || {};
+caltr.core = {
+createDateObjects: function(trains){
   console.time('createDateObjects');
   $.each(trains, function(i, train){
     $.each(train.stops, function(j, stop){
@@ -6,26 +8,83 @@ function createDateObjects(trains){
     });
   });
   console.timeEnd('createDateObjects');       
-}
+},
 
-function getActiveTrains(trains, time){
+createWpObjects: function(wps){
+    var that = this;
+    $.each(wps, function(i, wp){
+      wp.latLng = new google.maps.LatLng(wp.lat, wp.lng);
+      if(i == 0){
+        wp.distToPrev = 0;
+      } else {
+        wp.distToPrev = that.getDistBetweenWps(wps[i-1], wp);
+      } 
+    });
+},
+
+getActiveTrains: function(trains, time){
   return trains.filter(function(train){
    var first = train.stops[0].dateObj;
    var last = train.stops[train.stops.length-1].dateObj;
    return time.between(first, last);
   });
+},
+
+getWpsBetweenStops: function(wps, wpsStopMap, from, to){
+var slice = wps.slice(wpsStopMap[from], wpsStopMap[to]+1);
+if(slice.length == 0){
+    console.error(wps, slice, from, to);
+}
+return slice;
+},
+
+getDistBetweenWps: function(wp1, wp2){
+var p1 = wp1.latLng;
+var p2 = wp2.latLng;
+return google.maps.geometry.spherical.computeDistanceBetween(p1, p2); 
+},
+
+getDistOfWpsList: function (wps){
+var totLen = 0;
+for (var i = 1, len = wps.length; i < len; i++) {
+  totLen += wps[i].distToPrev;
+}
+return totLen;
+},
+
+getPoint: function (wps, frac){
+var totDist = this.getDistOfWpsList(wps);
+for (var i = 1, len = wps.length; i < len; i++) {
+  var startDist = this.getDistOfWpsList(wps.slice(0,i+1));//+1 to incl. i
+  if(frac < startDist/totDist){
+    var fracDist = frac * totDist;
+    //var subDist = getDistOfWpsList(wps.slice(0,i));
+    var subDist = startDist - wps[i].distToPrev; //reuse of startDist
+    var newDist = fracDist - subDist;
+    var thisDist = wps[i].distToPrev;
+    var newFrac = newDist / thisDist;
+    var p1 = wps[i-1].latLng;
+    var p2 = wps[i].latLng;
+    return google.maps.geometry.spherical.interpolate(p1, p2, newFrac);
+  }
+}
+console.error('could not find point with frac', wps, startDist/totDist);
 }
 
-function ActiveTrain(timeTableTrain){
-  this.number = timeTableTrain.number;
-  this.stops = timeTableTrain.stops;
+};
+
+caltr.ActiveTrain = function(data){
+  this.waypoints = data.waypoints.waypoints;
+  this.wpsStopMap = data.waypoints.stopIndex; 
+  this.number = data.trainTimes.number;
+  this.stops = data.trainTimes.stops;
   this.lastStopIndex = this.getLastStopIndex(); 
   this.timeBetweenStops = this.getTimeBetweenStops();
 }
 
-ActiveTrain.prototype.getLastStopIndex = function(){
+caltr.ActiveTrain.prototype.getLastStopIndex = function(){
   for(var i = 0; i < this.stops.length-1; i++){
-    var now = Utils.fakeNow(); //TODO 
+    var now = caltr.utils.fakeNow(); //TODO 
     if(now.between(this.stops[i].dateObj, this.stops[i+1].dateObj)){
       return i;
     }
@@ -34,36 +93,35 @@ ActiveTrain.prototype.getLastStopIndex = function(){
   return -1; 
 }
 
-ActiveTrain.prototype.getTimeBetweenStops = function(){
+caltr.ActiveTrain.prototype.getTimeBetweenStops = function(){
     var last = this.stops[this.lastStopIndex].dateObj;
     var next = this.stops[this.lastStopIndex+1].dateObj;//TODO try if last
-    return Utils.dateDiff(next, last, 'seconds', true);
+    return caltr.utils.dateDiff(next, last, 'seconds', true);
 }
 
-ActiveTrain.prototype.getTimeToNext = function(){
+caltr.ActiveTrain.prototype.getTimeToNext = function(){
     try {
       var next = this.stops[this.lastStopIndex+1].dateObj;
     } catch (error) {
         console.error(error);
         return 0;
     }
-    var now = Utils.fakeNow(); //TODO 
+    var now = caltr.utils.fakeNow(); //TODO 
     //console.log(now);
-    return Utils.dateDiff(next, now, 'seconds', true);
+    return caltr.utils.dateDiff(next, now, 'seconds', true);
 }
 
-ActiveTrain.prototype.run = function(){
+caltr.ActiveTrain.prototype.run = function(){
     var that = this;
-    this.runner = setInterval(function(){that.tic();}, Config.updateRate);
+    this.runner = setInterval(function(){that.tic();}, caltr.config.updateRate);
 }
 
-ActiveTrain.prototype.tic = function(){
+caltr.ActiveTrain.prototype.tic = function(){
     var timeToNext = this.getTimeToNext();
     //console.log('timeToNext', timeToNext);
     //var fractionTravelled = 1 - (timeToNext / this.timeBetweenStops);
     var frac = (timeToNext / this.timeBetweenStops);
     var fractionTravelled = 1 - frac;
-    //console.log(Utils.fakeNow(), timeToNext,fractionTravelled, frac);
     if(fractionTravelled >= 1.0){
         this.atStop();
     } else {
@@ -74,9 +132,10 @@ ActiveTrain.prototype.tic = function(){
         this.setMarkerPos(lastStop, nextStop, fractionTravelled); 
     }
 }
-ActiveTrain.prototype.setMarkerPos = function(lastStop, nextStop, frac){
-    var wps = getWpsBetweenStops(lastStop, nextStop);
-    var pos = getPoint(wps, frac);
+caltr.ActiveTrain.prototype.setMarkerPos = function(lastStop, nextStop, frac){
+    var wps = caltr.core.getWpsBetweenStops(this.waypoints, this.wpsStopMap,
+                                            lastStop, nextStop);
+    var pos = caltr.core.getPoint(wps, frac);
     if(!this.hasOwnProperty('marker')){
         this.marker = new google.maps.Marker({
           map: map,
@@ -85,7 +144,7 @@ ActiveTrain.prototype.setMarkerPos = function(lastStop, nextStop, frac){
     }
     this.marker.setPosition(pos);
 }
-ActiveTrain.prototype.atStop = function(){
+caltr.ActiveTrain.prototype.atStop = function(){
     console.log('atStop', this);
     clearInterval(this.runner);
     this.lastStopIndex++;
@@ -99,10 +158,10 @@ ActiveTrain.prototype.atStop = function(){
     this.marker.setTitle('Train ' + this.number + ', next: ' + nextStop);
     this.timeBetweenStops = this.getTimeBetweenStops();
     var that = this;
-    setTimeout(function(){that.run()}, Config.stoptime);
+    setTimeout(function(){that.run()}, caltr.config.stoptime);
 }
 
-var Utils = {
+caltr.utils = {
     dateDiff: function(date1, date2, measurement, floatResult){
       var result = moment(date1).diff(moment(date2), measurement, floatResult);
       //return Math.abs(result)
@@ -118,7 +177,7 @@ var Utils = {
 
 }
 
-var Config = {
+caltr.config = {
     stoptime: 3000, //in ms
     updateRate: 1000
 }

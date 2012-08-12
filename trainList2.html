@@ -29,7 +29,7 @@
     <script src="moment.js"></script>
     <script src="trainList2.js"></script>
     <script src="caltr.js"></script>
-    <script src="waypoints.js"></script>
+    <script src="waypoints2.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?sensor=false&libraries=geometry"></script>
     <script>
        
@@ -43,43 +43,6 @@
         map = new google.maps.Map($('#map_canvas')[0], mapOptions);
       }
 
-      function getWpsBetweenStops(from, to){
-        var slice = waypoints.slice(stopWps[from], stopWps[to]+1);
-        if(slice.length == 0){
-            console.error(slice, from,to);
-        }
-        return slice;
-      }
-      function getDistBetweenWps(wp1, wp2){
-        var p1 = wp1.latLng;
-        var p2 = wp2.latLng;
-        return google.maps.geometry.spherical.computeDistanceBetween(p1, p2); 
-      }
-      function getDistOfWpsList(wps){
-        var totLen = 0;
-        for (var i = 1, len = wps.length; i < len; i++) {
-          totLen += wps[i].distToPrev;
-        }
-        return totLen;
-      }
-      function getPoint(wps, frac){
-        var totDist = getDistOfWpsList(wps);
-        for (var i = 1, len = wps.length; i < len; i++) {
-          var startDist = getDistOfWpsList(wps.slice(0,i+1));//+1 to incl. i
-          if(frac < startDist/totDist){
-            var fracDist = frac * totDist;
-            //var subDist = getDistOfWpsList(wps.slice(0,i));
-            var subDist = startDist - wps[i].distToPrev; //reuse of startDist
-            var newDist = fracDist - subDist;
-            var thisDist = wps[i].distToPrev;
-            var newFrac = newDist / thisDist;
-            var p1 = wps[i-1].latLng;
-            var p2 = wps[i].latLng;
-            return google.maps.geometry.spherical.interpolate(p1, p2, newFrac);
-          }
-        }
-        console.error('could not find point with frac', wps, startDist/totDist);
-      }
         function showStops(){
             $.each(waypoints, function(i, wp){
               if(wp.hasOwnProperty('stop')){
@@ -94,30 +57,23 @@
         }
        function go(){ 
         $.each(activeTrains, function(i, train){
-            new ActiveTrain(train).run();
+            var t = new caltr.ActiveTrain({
+                trainTimes: train,
+                waypoints: waypoints2
+            });
+            t.run();
         });
        }
       $(document).ready(function(){
-        Utils.startDate = moment(Date.parse('2012-08-10 17:05:30'));
-        createDateObjects(trains);
-        var now = Utils.fakeNow();//TODO
-        activeTrains = getActiveTrains(trains, now);
+        caltr.utils.startDate = moment(Date.parse('2012-08-10 17:05:30'));
+        caltr.core.createDateObjects(trains);
+        caltr.core.createWpObjects(waypoints2.waypoints);
+        var now = caltr.utils.fakeNow();//TODO
+        activeTrains = caltr.core.getActiveTrains(trains, now);
         //console.log(activeTrains);
         //tr0 = new ActiveTrain(activeTrains[2]);
         //console.log(tr0);
         initialize();
-        stopWps = {};
-        $.each(waypoints, function(i, wp){
-          wp.latLng = new google.maps.LatLng(wp.lat, wp.lng);
-          if(i == 0){
-            wp.distToPrev = 0;
-          } else {
-            wp.distToPrev = getDistBetweenWps(waypoints[i-1], wp);
-          } 
-          if(wp.hasOwnProperty('stop')){
-              stopWps[wp.name] = i;
-          }
-        });
 
       });
     </script>
