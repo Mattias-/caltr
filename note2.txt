@@ -38,3 +38,25 @@ isActive(train)
     get time first stop
     get time last stop
     if current time <
+
+getPos(frac, from, to)
+    find from
+    for i= from; i<=to;i++
+        dist[i] = dist(wp[i],wp[i+1})
+        tot = dist[i]
+   for sum[i] + sum[i+1] < frac*tot 
+
+
+
+wps = {
+[
+{lat,
+lng}
+],
+stops ={
+    "So SF": 2,
+    "San F": 0
+}
+}
+
+TODO create js packages, format, refactor
