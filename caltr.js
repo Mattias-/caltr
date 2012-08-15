@@ -1,5 +1,15 @@
 var caltr = caltr || {};
 caltr.core = {
+
+init: function() {
+    var mapOptions = {
+      zoom: 12,
+      center: new google.maps.LatLng(37.7761, -122.406),
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    };
+    //maybe not in caltr.config
+   caltr.config.map = new google.maps.Map(caltr.config.mapCanvas, mapOptions);
+},
 createDateObjects: function(trains){
   console.time('createDateObjects');
   $.each(trains, function(i, train){
@@ -22,12 +32,20 @@ createWpObjects: function(wps){
     });
 },
 
-getActiveTrains: function(trains, time){
-  return trains.filter(function(train){
-   var first = train.stops[0].dateObj;
-   var last = train.stops[train.stops.length-1].dateObj;
-   return time.between(first, last);
-  });
+getNewTrains: function(trainTuples, oldTrains, time){
+    var res = [];
+    trainTuples.forEach(function(tup){
+    var r = tup.trainTimes.filter(function(train){
+     if(oldTrains.indexOf(train) != -1){
+        return false;
+     }
+     var first = train.stops[0].dateObj;
+     var last = train.stops[train.stops.length-1].dateObj;
+     return time.between(first, last);
+   });
+    res = res.concat(r);
+   });
+   return res;
 },
 
 getWpsBetweenStops: function(wps, wpsStopMap, from, to){
@@ -55,7 +73,7 @@ return totLen;
 getPoint: function (wps, frac){
 var totDist = this.getDistOfWpsList(wps);
 for (var i = 1, len = wps.length; i < len; i++) {
-  var startDist = this.getDistOfWpsList(wps.slice(0,i+1));//+1 to incl. i
+  var startDist = this.getDistOfWpsList(wps.slice(0,i+1));// +1 to incl. elem. i
   if(frac < startDist/totDist){
     var fracDist = frac * totDist;
     //var subDist = getDistOfWpsList(wps.slice(0,i));
@@ -74,12 +92,20 @@ console.error('could not find point with frac', wps, startDist/totDist);
 };
 
 caltr.ActiveTrain = function(data){
+  this.stops = data.trainTimes.stops;
+  this.number = data.trainTimes.number;
   this.waypoints = data.waypoints.waypoints;
   this.wpsStopMap = data.waypoints.stopIndex; 
-  this.number = data.trainTimes.number;
-  this.stops = data.trainTimes.stops;
   this.lastStopIndex = this.getLastStopIndex(); 
   this.timeBetweenStops = this.getTimeBetweenStops();
+  this.lastStopName = this.stops[this.lastStopIndex].name;
+  this.nextStopName = this.stops[this.lastStopIndex+1].name;
+  this.marker = new google.maps.Marker({map: caltr.config.map});
+  this.infowindow = new google.maps.InfoWindow();
+  var that = this;
+  google.maps.event.addListener(this.marker, 'click', function() {
+      that.infowindow.open(caltr.config.map, that.marker);
+  });
 }
 
 caltr.ActiveTrain.prototype.getLastStopIndex = function(){
@@ -107,7 +133,6 @@ caltr.ActiveTrain.prototype.getTimeToNext = function(){
         return 0;
     }
     var now = caltr.utils.fakeNow(); //TODO 
-    //console.log(now);
     return caltr.utils.dateDiff(next, now, 'seconds', true);
 }
 
@@ -118,44 +143,38 @@ caltr.ActiveTrain.prototype.run = function(){
 
 caltr.ActiveTrain.prototype.tic = function(){
     var timeToNext = this.getTimeToNext();
-    //console.log('timeToNext', timeToNext);
-    //var fractionTravelled = 1 - (timeToNext / this.timeBetweenStops);
-    var frac = (timeToNext / this.timeBetweenStops);
-    var fractionTravelled = 1 - frac;
-    if(fractionTravelled >= 1.0){
+    var frac = timeToNext / this.timeBetweenStops;
+    var fracTravelled = 1 - frac;
+    if(fracTravelled >= 1.0){
         this.atStop();
     } else {
-        var lastStop = this.stops[this.lastStopIndex].name;
-        var nextStop = this.stops[this.lastStopIndex+1].name;
-       // console.log(lastStop, nextStop, this.timeBetweenStops);
-        // pos = getPos()
-        this.setMarkerPos(lastStop, nextStop, fractionTravelled); 
+      var wps = caltr.core.getWpsBetweenStops(this.waypoints, this.wpsStopMap,
+                                            this.lastStopName, this.nextStopName);
+      var pos = caltr.core.getPoint(wps, frac);
+      this.marker.setPosition(pos);
     }
-}
-caltr.ActiveTrain.prototype.setMarkerPos = function(lastStop, nextStop, frac){
-    var wps = caltr.core.getWpsBetweenStops(this.waypoints, this.wpsStopMap,
-                                            lastStop, nextStop);
-    var pos = caltr.core.getPoint(wps, frac);
-    if(!this.hasOwnProperty('marker')){
-        this.marker = new google.maps.Marker({
-          map: map,
-          title: 'Train ' + this.number + ', next: ' + nextStop
-        });
-    }
-    this.marker.setPosition(pos);
 }
 caltr.ActiveTrain.prototype.atStop = function(){
-    console.log('atStop', this);
+    var now = caltr.utils.fakeNow(); //TODO 
+    console.log(this, 'at stop', this.nextStopName, now);
     clearInterval(this.runner);
     this.lastStopIndex++;
     if(this.lastStopIndex+1 >= this.stops.length){
         this.marker.setVisible(false);
-        activeTrains.splice(activeTrains.indexOf(this), 1); //remove obj from list
+        this.infowindow.close()
+        //activeTrains.splice(activeTrains.indexOf(this), 1); //remove obj from list
+        //might be on to something here..
+        delete this;
         return
     }
     //set pos, data, etc.    
-    var nextStop = this.stops[this.lastStopIndex+1].name;
-    this.marker.setTitle('Train ' + this.number + ', next: ' + nextStop);
+    this.lastStopName = this.nextStopName;
+    this.nextStopName = this.stops[this.lastStopIndex+1].name;
+    
+    this.content = 'Train ' + this.number + ', next: ' + this.nextStopName;
+    this.marker.setTitle(this.content);
+    this.infowindow.setContent('<p>' + this.content + '</p>');
+    
     this.timeBetweenStops = this.getTimeBetweenStops();
     var that = this;
     setTimeout(function(){that.run()}, caltr.config.stoptime);
@@ -164,7 +183,6 @@ caltr.ActiveTrain.prototype.atStop = function(){
 caltr.utils = {
     dateDiff: function(date1, date2, measurement, floatResult){
       var result = moment(date1).diff(moment(date2), measurement, floatResult);
-      //return Math.abs(result)
       return result
     },
     startDate : moment(Date.now()),
@@ -178,6 +196,6 @@ caltr.utils = {
 }
 
 caltr.config = {
-    stoptime: 3000, //in ms
+    stoptime: 3 * 1000, //in ms
     updateRate: 1000
 }

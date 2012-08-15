@@ -33,15 +33,6 @@
     <script src="https://maps.googleapis.com/maps/api/js?sensor=false&libraries=geometry"></script>
     <script>
        
-      var map;
-      function initialize() {
-        var mapOptions = {
-          zoom: 12,
-          center: new google.maps.LatLng(37.7761, -122.406),
-          mapTypeId: google.maps.MapTypeId.ROADMAP
-        };
-        map = new google.maps.Map($('#map_canvas')[0], mapOptions);
-      }
 
         function showStops(){
             $.each(waypoints, function(i, wp){
@@ -55,26 +46,38 @@
               }
             });
         }
-       function go(){ 
-        $.each(activeTrains, function(i, train){
-            var t = new caltr.ActiveTrain({
-                trainTimes: train,
-                waypoints: waypoints2
-            });
-            t.run();
-        });
-       }
+        function runNewTrains(trains){
+         trains.forEach(function(train){
+             var t = new caltr.ActiveTrain({
+                 trainTimes: train,
+                 waypoints: waypoints2
+             });
+             t.run();
+             //train.activeTrain = t; //this sucks but need for remove?
+             activeTrains.push(train);
+         });
+        }
+        var trainTuples = [
+        { trainTimes: trains,
+          waypoints: waypoints2}
+        ];
+        var activeTrains = [];
+        //var newTrains = [];
       $(document).ready(function(){
+        caltr.config.mapCanvas = $('#map_canvas')[0];
+        caltr.core.init();
         caltr.utils.startDate = moment(Date.parse('2012-08-10 17:05:30'));
         caltr.core.createDateObjects(trains);
         caltr.core.createWpObjects(waypoints2.waypoints);
-        var now = caltr.utils.fakeNow();//TODO
-        activeTrains = caltr.core.getActiveTrains(trains, now);
-        //console.log(activeTrains);
-        //tr0 = new ActiveTrain(activeTrains[2]);
-        //console.log(tr0);
-        initialize();
-
+        //newTrains = caltr.core.getNewTrains(trainTuples, activeTrains, now);
+        setInterval(function(){
+         var now = caltr.utils.fakeNow();//TODO
+         var newTrains = caltr.core.getNewTrains(trainTuples, activeTrains, now);
+         if(newTrains.length){
+           console.log('ntr', newTrains);
+           runNewTrains(newTrains);
+         } 
+        }, 10000);
       });
     </script>
   </head>
