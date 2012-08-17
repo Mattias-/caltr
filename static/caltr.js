@@ -8,7 +8,18 @@ init: function() {
       mapTypeId: google.maps.MapTypeId.ROADMAP
     };
     //maybe not in caltr.config
-   caltr.config.map = new google.maps.Map(caltr.config.mapCanvas, mapOptions);
+   caltr.map = new google.maps.Map(caltr.mapCanvas, mapOptions);
+},
+runNewTrains: function(trains){
+         trains.forEach(function(train){
+             var t = new caltr.ActiveTrain({
+                 trainTimes: train,
+                 waypoints: waypoints2
+             });
+             t.run();
+             //train.activeTrain = t; //this sucks but need for remove?
+             caltr.activeTrains.push(train);
+         });
 },
 createDateObjects: function(trains){
   console.time('createDateObjects');
@@ -100,11 +111,17 @@ caltr.ActiveTrain = function(data){
   this.timeBetweenStops = this.getTimeBetweenStops();
   this.lastStopName = this.stops[this.lastStopIndex].name;
   this.nextStopName = this.stops[this.lastStopIndex+1].name;
-  this.marker = new google.maps.Marker({map: caltr.config.map});
+  this.marker = new google.maps.Marker({map: caltr.map});
+  console.log('created train object');
   this.infowindow = new google.maps.InfoWindow();
+  this.content = 'Train ' + this.number + ', next: ' + this.nextStopName;
+  
+  this.marker.setTitle(this.content);
+  this.infowindow.setContent('<p>' + this.content + '</p>');
+  
   var that = this;
   google.maps.event.addListener(this.marker, 'click', function() {
-      that.infowindow.open(caltr.config.map, that.marker);
+      that.infowindow.open(caltr.map, that.marker);
   });
 }
 
@@ -143,9 +160,8 @@ caltr.ActiveTrain.prototype.run = function(){
 
 caltr.ActiveTrain.prototype.tic = function(){
     var timeToNext = this.getTimeToNext();
-    var frac = timeToNext / this.timeBetweenStops;
-    var fracTravelled = 1 - frac;
-    if(fracTravelled >= 1.0){
+    var frac = 1 - timeToNext / this.timeBetweenStops;
+    if(frac >= 1.0){
         this.atStop();
     } else {
       var wps = caltr.core.getWpsBetweenStops(this.waypoints, this.wpsStopMap,

@@ -5,19 +5,27 @@ import datetime
 import json
 
 def main():
+    print to_json(datetime.date.today(), 'south')
+
+def to_json(date, line):
     matrix = []
-    firstline = sys.stdin.readline()
+    if date.weekday() in [5,6]:
+        #open weekend
+        raise Exception()
+    else:
+        f = open('southbound.txt')
+    firstline = f.readline()
     columns = firstline.strip().split('\t')
     matrix.append(columns)
     temprow = []
-    for line in sys.stdin:
+    for line in f:
         rowdata = line.strip().split('\t')
         if len(rowdata) ==  2:
             if temprow:
                 matrix.append(temprow)
                 temprow = []
         temprow.extend(rowdata)
-
+    f.close()
     matrix.append(temprow)
 
     matrix = [list(i) for i in zip(*matrix)]
@@ -57,43 +65,14 @@ def main():
                                    '276', '378', '280', '382', '284', '386',
                                    '288', '190', '192', '194'] or (train['number'] == '198' and h == 12) or (train['number'] == '146' and h == 1):
                 h = (h + 12) % 24
-            d = datetime.date.today()
+            d = date;
             if (train['number'] == '196' and h == 0) or train['number'] == '198':
                 d += datetime.timedelta(1);
             t = datetime.time(h, m)
             s['time'] = datetime.datetime.combine(d, t).isoformat() + '-0700'
-    print "trains = %s;" % json.dumps(tl, indent=2)
-    print "stops = %s;" % json.dumps(stops,indent=2)
-
-#    for train in trainList:
-#        for (k, v) in enumerate(train['stops']):
-#            if v.endswith('*'):
-#                train['stops'][k] = v[:-1]
-#            if (v != '-' and
-#            (train['number'] in ['146', '150', '154', '158', '260', '362', '264', '266', '368', '270', '372', '274', '276', '378', '280', '382', '284', '386', '288', '190', '192', '194']
-#            or ((train['number'] == '142' and v.startswith('12'))
-#            or (train['number'] == '196' and not v.startswith('12'))))
-#            ):
-#                    train['stops'][k] += 'p'
-#    for train in trainList:
-#        for (i, time) in enumerate(train['stopTimes']):
-#            split = time.split(':')
-#            h = int(split[0])
-#            m = split[1]
-#            pm = len(split[1]) == 3
-#            if pm and h != 12:
-#                h += 12
-#                m = m[:-1]
-#            if not pm and h == 12: h = 0
-#            m = int(m)
-#            del train['trainNumber'][i]
-#            train['trainNumber'][i] = (h,m)
-
-
-    #print '\n\n', trainList[18]    
-    #print '\n\n', trainList[42]    
-    #print 'trainList =', trainList, ';'
-    #print 'stopList =', list(stops), ';'
+    #print "trains = %s;" % json.dumps(tl, indent=2)
+    #print "stops = %s;" % json.dumps(stops,indent=2)
+    return json.dumps({'trains': tl, 'stops':stops}, indent=2)
 
 if __name__ == '__main__':
     main()
