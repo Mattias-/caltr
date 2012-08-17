@@ -25,3 +25,9 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+#Editor swap files
+.*.swp
+
+#Python virtual environment
+venv
