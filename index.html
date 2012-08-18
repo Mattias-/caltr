@@ -19,9 +19,9 @@
         vertical-align: right;
       }
       #map_canvas {
-       width:75%;
-       height:100%;
-       float:left;
+        width:75%;
+        height:100%;
+        float:left;
       }
     </style>
     <script src="static/jquery-1.7.2.min.js"></script>
@@ -29,51 +29,50 @@
     <script src="static/moment.js"></script>
     <script src="static/trainList2.js"></script>
     <script src="static/caltr.js"></script>
+    <script src="static/core.js"></script>
+    <script src="static/utils.js"></script>
     <script src="static/waypoints2.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?sensor=false&libraries=geometry"></script>
     <script>
-       
-
-    //    function showStops(){
-    //        $.each(waypoints, function(i, wp){
-    //          if(wp.hasOwnProperty('stop')){
-    //              var p = new google.maps.LatLng(wp.lat, wp.lng); 
-    //              new google.maps.Marker({
-    //                position: p,
-    //                map: map,
-    //                title: wp.stop + ' ' + wp.name
-    //              });
-    //          }
-    //        });
-    //    }
-        caltr.trainTuples = [
-        { trainTimes: trains,
-          waypoints: waypoints2}
-        ];
-        caltr.activeTrains = [];
-        //var newTrains = [];
+//    function showStops(){
+//        $.each(waypoints, function(i, wp){
+//          if(wp.hasOwnProperty('stop')){
+//              var p = new google.maps.LatLng(wp.lat, wp.lng); 
+//              new google.maps.Marker({
+//                position: p,
+//                map: map,
+//                title: wp.stop + ' ' + wp.name
+//              });
+//          }
+//        });
+//    }
+      caltr.trainTuples = [
+        {trainTimes: trains, waypoints: waypoints2}
+      ];
+      caltr.activeTrains = [];
       $(document).ready(function(){
         caltr.mapCanvas = $('#map_canvas')[0];
         caltr.core.init();
         caltr.utils.startDate = moment(Date.parse('2012-08-10 17:05:30'));
         caltr.core.createDateObjects(trains);
         caltr.core.createWpObjects(waypoints2.waypoints);
-        //newTrains = caltr.core.getNewTrains(trainTuples, activeTrains, now);
-         var now = caltr.utils.fakeNow();//TODO
-         var newTrains = caltr.core.getNewTrains(caltr.trainTuples, caltr.activeTrains, now);
-           caltr.core.runNewTrains(newTrains.slice(1,2));
-     //   setInterval(function(){
-     //    var now = caltr.utils.fakeNow();//TODO
-     //    var newTrains = caltr.core.getNewTrains(caltr.trainTuples, caltr.activeTrains, now);
-     //    if(newTrains.length){
-     //      console.log('ntr', newTrains);
-     //      caltr.core.runNewTrains(newTrains);
-     //    } 
-     //   }, 10000);
+        //var now = caltr.utils.fakeNow();//TODO
+        //var newTrains = caltr.core.getNewTrains(caltr.trainTuples,
+        //                                        caltr.activeTrains, now);
+        //caltr.core.runNewTrains(newTrains.slice(1,2));
+        setInterval(function(){
+          var now = caltr.utils.fakeNow();//TODO
+          var newTrains = caltr.core.getNewTrains(caltr.trainTuples,
+                                                  caltr.activeTrains, now);
+          if(newTrains.length){
+            console.log('ntr', newTrains);
+            caltr.core.runNewTrains(newTrains);
+          } 
+        }, 10000);
       });
     </script>
   </head>
   <body>
-   <div id="map_canvas"></div> 
+    <div id="map_canvas"></div> 
   </body>
 </html>
