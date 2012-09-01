@@ -1,8 +1,8 @@
 var caltr = caltr || {};
 
 caltr.ActiveTrain = function(data){
-  this.stops = data.trainTimes.stops;
-  this.number = data.trainTimes.number;
+  this.stops = data.stops;
+  this.number = data.number;
   this.waypoints = data.waypoints.waypoints;
   this.wpsStopMap = data.waypoints.stopIndex; 
   this.lastStopIndex = this.getLastStopIndex(); 

@@ -13,24 +13,21 @@ caltr.core = {
 
   runNewTrains: function(trains){
       trains.forEach(function(train){
-      var t = new caltr.ActiveTrain({
-        trainTimes: train,
-        waypoints: waypoints2
-      });
+      var t = new caltr.ActiveTrain(train);
       t.run();
       //train.activeTrain = t; //this sucks but need for remove?
       caltr.activeTrains.push(train);
-    );
+      });
   },
       
   createDateObjects: function(trains){
-    console.time('createDateObjects');
-    $.each(trains, function(i, train){
-      $.each(train.stops, function(j, stop){
+    //console.time('createDateObjects');
+    trains.forEach( function(train){
+      train.stops.forEach(function(stop){
         stop.dateObj = new Date(stop.time);
       });
     });
-    console.timeEnd('createDateObjects');       
+    //console.timeEnd('createDateObjects');       
   },
 
   createWpObjects: function(wps){
@@ -45,10 +42,10 @@ caltr.core = {
     });
    },
 
-  getNewTrains: function(trainTuples, oldTrains, time){
-    var res = [];
-    trainTuples.forEach(function(tup){
-      var r = tup.trainTimes.filter(function(train){
+  getNewTrains: function(allTrains, oldTrains, time){
+    //var res = [];
+    //allTrains.forEach(function(train){
+      return allTrains.filter(function(train){
         if(oldTrains.indexOf(train) != -1){
           return false;
         }
@@ -56,9 +53,9 @@ caltr.core = {
         var last = train.stops[train.stops.length-1].dateObj;
         return time.between(first, last);
       });
-        res = res.concat(r);
-    });
-    return res;
+     //   res = res.concat(r);
+   // });
+    //return res;
   },
 
   getWpsBetweenStops: function(wps, wpsStopMap, from, to){
