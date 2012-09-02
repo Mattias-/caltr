@@ -73,7 +73,8 @@ def to_json(date, line):
             s['time'] = datetime.datetime.combine(d, t).isoformat() + '-0700'
     #print "trains = %s;" % json.dumps(tl, indent=2)
     #print "stops = %s;" % json.dumps(stops,indent=2)
-    return json.dumps({'trains': tl, 'stops':stops}, indent=2)
+    o = json.load(open('waypoints_n.json'))
+    return {'trains': tl, 'stops':stops, 'waypoints':o}
 
 if __name__ == '__main__':
     main()

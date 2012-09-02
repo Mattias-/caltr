@@ -50,16 +50,18 @@
         caltr.allTrains = [];
         caltr.utils.startDate = moment(Date.parse('2012-08-10 17:05:30'));
         var now = caltr.utils.fakeNow();//TODO
-        var url = "data/"+now.getTime()+"/south"
+        var url = "data/"+now.getTime()+"/all"
         $.ajax(url, {dataType: "json"}).done(function(r){
-          console.log(r);
-          caltr.core.createDateObjects(r.trains);
-          caltr.core.createWpObjects(r.waypoints.waypoints);
-          r.trains.forEach(function(train){
-            caltr.allTrains.push({
-              stops: train.stops,
-              number: train.number,
-              waypoints: r.waypoints
+          r.lines.forEach(function(l){
+            console.log(l);
+            caltr.core.createDateObjects(l.trains);
+            caltr.core.createWpObjects(l.waypoints.waypoints);
+            l.trains.forEach(function(train){
+              caltr.allTrains.push({
+                stops: train.stops,
+                number: train.number,
+                waypoints: l.waypoints
+              });
             });
           });
         }).fail(function(f){

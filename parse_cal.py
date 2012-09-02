@@ -73,7 +73,7 @@ def to_json(date, line):
     #print "trains = %s;" % json.dumps(tl, indent=2)
     #print "stops = %s;" % json.dumps(stops,indent=2)
     o = json.load(open('waypoints_s.json'))
-    return json.dumps({'trains': tl, 'stops':stops, 'waypoints':o}, indent=2)
+    return {'trains': tl, 'stops':stops, 'waypoints':o}
 
 if __name__ == '__main__':
     main()
