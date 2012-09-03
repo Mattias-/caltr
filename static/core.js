@@ -2,48 +2,11 @@ var caltr = caltr || {};
 
 caltr.core = {
   init: function(options) {
+    var o = caltr.config.mapOptions;
     if(typeof options !== 'undefined'){
-      var mapOptions = options;
-    } else {
-      var roadAtlasStyles = [
-        {
-          featureType: 'poi',
-          elementType: 'labels',
-          stylers: [
-            {visibility: 'on'}
-          ]
-        },
-        {
-          featureType: 'transit.line',
-          stylers: [
-            {visibility: 'on'},  
-            {hue: '#000000'},
-            {lightness: -100}
-          ]
-        },
-        {
-          featureType: 'road',
-          elementType: 'labels',
-          stylers: [
-            {visibility: 'simplified'}  
-          ]
-        },
-        {
-          featureType: 'road',
-          elementType: 'geometry',
-          stylers: [
-            {visibility: 'simplified'}  
-          ]
-        }
-      ];
-      var mapOptions = {
-        zoom: 12,
-        center: new google.maps.LatLng(37.7761, -122.406),
-        mapTypeId: google.maps.MapTypeId.ROADMAP,
-      }
-
+      o = options;
     }
-    caltr.map = new google.maps.Map(caltr.mapCanvas, mapOptions);
+    caltr.map = new google.maps.Map(caltr.mapCanvas, o);
   },
 
   runNewTrains: function(trains){
