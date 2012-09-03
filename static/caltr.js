@@ -9,7 +9,10 @@ caltr.ActiveTrain = function(data){
   this.timeBetweenStops = this.getTimeBetweenStops();
   this.lastStopName = this.stops[this.lastStopIndex].name;
   this.nextStopName = this.stops[this.lastStopIndex+1].name;
-  this.marker = new google.maps.Marker({map: caltr.map});
+  this.marker = new google.maps.Marker({
+    map: caltr.map,
+    icon: caltr.config.icon
+  });
   //console.log('created train object');
   this.infowindow = new google.maps.InfoWindow();
   this.content = 'Train ' + this.number + ', next: ' + this.nextStopName;

@@ -24,14 +24,13 @@
         float:left;
       }
     </style>
+    <script src="https://maps.googleapis.com/maps/api/js?sensor=false&libraries=geometry"></script>
     <script src="static/jquery-1.7.2.min.js"></script>
     <script src="static/date.js"></script>
     <script src="static/moment.js"></script>
     <script src="static/config.js"></script>
     <script src="static/core.js"></script>
     <script src="static/caltr.js"></script>
-    <!--<script src="static/waypoints2.js"></script>-->
-    <script src="https://maps.googleapis.com/maps/api/js?sensor=false&libraries=geometry"></script>
     <script>
 //    function showStops(){
 //        $.each(waypoints, function(i, wp){
@@ -48,7 +47,7 @@
       $(document).ready(function(){
         caltr.trainTuples = [];
         caltr.allTrains = [];
-        caltr.utils.startDate = moment(Date.parse('2012-08-10 17:05:30'));
+        caltr.utils.startDate = moment(Date.parse('2012-09-02 20:20:00'));
         var now = caltr.utils.fakeNow();//TODO
         var url = "data/"+now.getTime()+"/all"
         $.ajax(url, {dataType: "json"}).done(function(r){

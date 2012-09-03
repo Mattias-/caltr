@@ -1,22 +1,57 @@
 var caltr = caltr || {};
 
 caltr.core = {
-  init: function() {
-    var mapOptions = {
-      zoom: 12,
-      center: new google.maps.LatLng(37.7761, -122.406),
-      mapTypeId: google.maps.MapTypeId.ROADMAP
-    };
-    //maybe not in caltr.config
+  init: function(options) {
+    if(typeof options !== 'undefined'){
+      var mapOptions = options;
+    } else {
+      var roadAtlasStyles = [
+        {
+          featureType: 'poi',
+          elementType: 'labels',
+          stylers: [
+            {visibility: 'on'}
+          ]
+        },
+        {
+          featureType: 'transit.line',
+          stylers: [
+            {visibility: 'on'},  
+            {hue: '#000000'},
+            {lightness: -100}
+          ]
+        },
+        {
+          featureType: 'road',
+          elementType: 'labels',
+          stylers: [
+            {visibility: 'simplified'}  
+          ]
+        },
+        {
+          featureType: 'road',
+          elementType: 'geometry',
+          stylers: [
+            {visibility: 'simplified'}  
+          ]
+        }
+      ];
+      var mapOptions = {
+        zoom: 12,
+        center: new google.maps.LatLng(37.7761, -122.406),
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
+      }
+
+    }
     caltr.map = new google.maps.Map(caltr.mapCanvas, mapOptions);
   },
 
   runNewTrains: function(trains){
       trains.forEach(function(train){
-      var t = new caltr.ActiveTrain(train);
-      t.run();
-      //train.activeTrain = t; //this sucks but need for remove?
-      caltr.activeTrains.push(train);
+        var t = new caltr.ActiveTrain(train);
+        t.run();
+        //train.activeTrain = t; //this sucks but need for remove?
+        caltr.activeTrains.push(train);
       });
   },
       
