@@ -35,7 +35,7 @@ def to_json(date, line):
     #print matrix[0]
     #print 'matrix', matrix[1:]
     matrix = [list(i) for i in zip(*matrix[1:])]
-    print 'matrix', matrix
+    #print 'matrix', matrix
 
     #zones = matrix[0][1:]
     stops = matrix[0][1:]

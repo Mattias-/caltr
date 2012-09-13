@@ -9,7 +9,7 @@ def main():
 
 def to_json(date, line):
     matrix = []
-    f = open('north2.txt')
+    f = open('northbound.txt')
     #firstline = f.readline()
     #columns = firstline.strip().split('\t')
     #matrix.append(columns)
@@ -60,7 +60,7 @@ def to_json(date, line):
             if train['number'] in ['151', '155', '159', '261', '263', '365',
                                    '267', '369', '271', '373', '275', '277',
                                    '379', '281', '383', '285', '287', '189',
-                                   '191', '193', '195'] or (train['number'] == '147' and h == 1) or (train['number'] == '197' and h == 12):
+                                   '191', '193', '195'] or (train['number'] == '147' and h == 1) or (train['number'] == '197'):
                 h = (h + 12) % 24
             d = date;
             if (train['number'] == '197' and h == 0):

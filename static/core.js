@@ -13,7 +13,7 @@ caltr.core = {
       trains.forEach(function(train){
         var t = new caltr.ActiveTrain(train);
         t.run();
-        //train.activeTrain = t; //this sucks but need for remove?
+        train.runningTrain = t; //this sucks but need for remove?
         caltr.activeTrains.push(train);
       });
   },
